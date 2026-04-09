@@ -47,6 +47,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-airflow-db.sql:/docker-entrypoint-initdb.d/init-airflow-db.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -55,6 +56,76 @@ services:
     restart: unless-stopped
     networks:
       - lakehouse_net
+
+  airflow-common: &airflow-common
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    env_file:
+      - ./.env
+    environment: &airflow-common-env
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow123@postgres/airflow
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+      AIRFLOW__SCHEDULER__STATSD_ON: 'false'
+      _PIP_ADDITIONAL_DEPENDENCIES: ${_PIP_ADDITIONAL_DEPENDENCIES:-}
+      PYSPARK_SUBMIT_ARGS: >
+        --packages io.delta:delta-spark_2.12:3.2.0,org.apache.hadoop:hadoop-aws:3.3.4,com.amazonaws:aws-java-sdk-bundle:1.12.262
+        --jars /opt/airflow/jars/postgresql-42.7.4.jar
+        --driver-class-path /opt/airflow/jars/postgresql-42.7.4.jar
+        pyspark-shell
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./jobs:/opt/airflow/jobs
+      - ./src:/opt/airflow/src
+      - ./data:/opt/airflow/data
+      - ./conf:/opt/airflow/conf
+      - ./logs:/opt/airflow/logs
+      - ./jars:/opt/airflow/jars:ro
+    user: "${AIRFLOW_UID:-1000}:${AIRFLOW_GID:-0}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - lakehouse_net
+
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: always
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    restart: always
+
+  airflow-init:
+    <<: *airflow-common
+    environment:
+      <<: *airflow-common-env
+      _AIRFLOW_DB_UPGRADE: 'true'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-admin}
+      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-admin}
+    user: "0:0"
+    command: >
+      bash -c "airflow db init &&
+      airflow users create \
+          --username admin \
+          --firstname admin \
+          --lastname admin \
+          --role Admin \
+          --email admin@example.com \
+          --password admin"
 
   pyspark-notebook:
     image: jupyter/pyspark-notebook:latest

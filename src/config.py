@@ -23,6 +23,12 @@ BRONZE_BUCKET = os.getenv("MINIO_BUCKET_BRONZE", "bronze")
 SILVER_BUCKET = os.getenv("MINIO_BUCKET_SILVER", "silver")
 GOLD_BUCKET = os.getenv("MINIO_BUCKET_GOLD", "gold")
 
+# PostgreSQL (Hive metastore backend)
+POSTGRES_DB = os.getenv("POSTGRES_DB", "metastore")
+POSTGRES_USER = os.getenv("POSTGRES_USER", "metastore")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "metastore123")
+POSTGRES_HOST = os.getenv("POSTGRES_HOST", "postgres")
+
 SPARK_MASTER = os.getenv("SPARK_MASTER", "local[*]")
 
 DELTA_SPARK_PACKAGE_VERSION = os.getenv("DELTA_SPARK_PACKAGE_VERSION", "3.2.0")

@@ -37,6 +37,25 @@ def get_spark_session(app_name: str = "olist-bronze-ingestion") -> SparkSession:
         .config("spark.hadoop.fs.s3a.endpoint", MINIO_ENDPOINT)
         .config("spark.hadoop.fs.s3a.access.key", MINIO_ACCESS_KEY)
         .config("spark.hadoop.fs.s3a.secret.key", MINIO_SECRET_KEY)
+        # Hive Metastore JDBC Configuration (PostgreSQL)
+        .config(
+            "spark.hadoop.javax.jdo.option.ConnectionURL",
+            f"jdbc:postgresql://{os.getenv('POSTGRES_HOST', 'postgres')}:5432/{os.getenv('POSTGRES_DB', 'metastore')}",
+        )
+        .config("spark.hadoop.javax.jdo.option.ConnectionDriverName", "org.postgresql.Driver")
+        .config(
+            "spark.hadoop.javax.jdo.option.ConnectionUserName",
+            os.getenv("POSTGRES_USER", "metastore"),
+        )
+        .config(
+            "spark.hadoop.javax.jdo.option.ConnectionPassword",
+            os.getenv("POSTGRES_PASSWORD", "metastore123"),
+        )
+        .config("spark.hadoop.datanucleus.schema.autoCreateAll", "false")
+        .config("spark.hadoop.hive.metastore.schema.verification", "false")
+        # Classpath for Hive Metastore JDBC Driver
+        .config("spark.driver.extraClassPath", "/opt/airflow/jars/postgresql-42.7.4.jar")
+        .config("spark.executor.extraClassPath", "/opt/airflow/jars/postgresql-42.7.4.jar")
     )
 
     spark = builder.getOrCreate()

@@ -14,12 +14,29 @@
    ```
 3. Khởi chạy các dịch vụ (Docker):
    ```bash
-   docker-compose -f deploy/docker-compose.yml up -d
+   docker-compose up -d
    ```
 4. Dừng các dịch vụ:
    ```bash
-   docker-compose -f deploy/docker-compose.yml down
+   docker-compose down
    ```
+
+## 2. Orchestration với Airflow
+
+Dự án sử dụng Airflow để tự động hóa luồng dữ liệu (Bronze -> Silver -> Gold).
+
+1. **Truy cập Airflow Web UI:**
+   - URL: `http://localhost:8080`
+   - Username: `admin`
+   - Password: `admin`
+
+2. **Kích hoạt Pipeline:**
+   - Tìm DAG `olist_lakehouse_pipeline`.
+   - Bật (unpause) DAG và nhấn nút "Trigger DAG" để chạy ngay lập tức.
+
+3. **Giám sát:**
+   - Sử dụng **Graph View** để xem luồng công việc.
+   - Kiểm tra **Logs** của từng task (`ingest_bronze`, `process_silver`, `analytics_gold`) nếu gặp lỗi.
 
 ## 2. Quy trình phát triển (Agile/Scrum với Plane.so)
 
