@@ -20,6 +20,7 @@ MINIO_ENDPOINT = _normalize_endpoint(os.getenv("MINIO_ENDPOINT", "localhost:9000
 MINIO_ACCESS_KEY = os.getenv("MINIO_ROOT_USER", "minioadmin")
 MINIO_SECRET_KEY = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin")
 BRONZE_BUCKET = os.getenv("MINIO_BUCKET_BRONZE", "bronze")
+SILVER_BUCKET = os.getenv("MINIO_BUCKET_SILVER", "silver")
 
 SPARK_MASTER = os.getenv("SPARK_MASTER", "local[*]")
 
@@ -58,3 +59,7 @@ def get_dataset_source_path(file_name: str) -> Path:
 
 def get_bronze_table_path(dataset_name: str) -> str:
     return f"s3a://{BRONZE_BUCKET}/olist_{dataset_name}"
+
+
+def get_silver_table_path(dataset_name: str) -> str:
+    return f"s3a://{SILVER_BUCKET}/{dataset_name}"
