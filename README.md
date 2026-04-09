@@ -66,7 +66,18 @@ flowchart LR
 The data lifecycle is managed using the Medallion Architecture:
 
 ### 🥉 Bronze Layer (Raw Data)
-Ingests raw CSV data from the Olist dataset and saves it in Delta format without schema enforcement.
+Ingests all core Olist CSV tables and saves them in Delta format without schema enforcement.
+
+Expected raw files in `data/raw/olist/`:
+- `olist_orders_dataset.csv`
+- `olist_order_items_dataset.csv`
+- `olist_products_dataset.csv`
+- `olist_customers_dataset.csv`
+- `olist_order_reviews_dataset.csv`
+- `olist_sellers_dataset.csv`
+- `olist_geolocation_dataset.csv`
+- `olist_order_payments_dataset.csv`
+- `product_category_name_translation.csv`
 
 ### 🥈 Silver Layer (Cleansed & Conformed)
 Filters out canceled orders, handles missing values, casts data types (e.g., Timestamps), and performs distributed joins across multiple tables (orders, customers, products, order_items) to create denormalized factual tables.
@@ -126,14 +137,26 @@ Superset: http://localhost:8088 (Default: admin / admin)
 
 Spark UI: http://localhost:4040 (Available during job execution)
 
-### 5. Running the Pipeline
+### 5. Prepare Raw Dataset
 
-Trigger the DAG named olist_medallion_pipeline in the Airflow UI, or run the Spark jobs manually:
+Download and extract the full Olist dataset from Kaggle, then place all 9 CSV files in:
+
+```text
+data/raw/olist/
+```
+
+### 6. Running Bronze Ingestion
+
+Run the bronze job manually from the project root:
 
 ```bash
-docker exec -it spark-master spark-submit /opt/workspace/jobs/01_ingest_bronze.py
-docker exec -it spark-master spark-submit /opt/workspace/jobs/02_process_silver.py
-docker exec -it spark-master spark-submit /opt/workspace/jobs/03_analytics_gold.py
+python jobs/01_ingest_bronze.py
+```
+
+Or run it from the notebook container:
+
+```bash
+docker exec -it olist-pyspark-notebook python /home/jovyan/work/jobs/01_ingest_bronze.py
 ```
 
 ## 📁 Project Structure

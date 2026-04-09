@@ -98,7 +98,7 @@ _Tạo các Issue này trong Plane.so, gán vào Module và Cycle tương ứng,
 
 * **Các bước triển khai (Step-by-step):**
 
-  1. Download bộ dữ liệu Olist từ Kaggle (chọn khoảng 5 file cốt lõi: `orders`, `order_items`, `products`, `customers`, `reviews`).
+  1. Download bộ dữ liệu Olist từ Kaggle (TOÀN BỘ DATASET 9 file: `orders`, `order_items`, `products`, `customers`, `reviews`, `sellers`, `geolocation`, `order_payments`, `category_name_translation`).
 
   2. Khởi tạo `SparkSession` với config kết nối S3/MinIO (`spark.hadoop.fs.s3a.endpoint`, v.v.) và enable Delta config (`spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension`).
 
