@@ -21,6 +21,7 @@ MINIO_ACCESS_KEY = os.getenv("MINIO_ROOT_USER", "minioadmin")
 MINIO_SECRET_KEY = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin")
 BRONZE_BUCKET = os.getenv("MINIO_BUCKET_BRONZE", "bronze")
 SILVER_BUCKET = os.getenv("MINIO_BUCKET_SILVER", "silver")
+GOLD_BUCKET = os.getenv("MINIO_BUCKET_GOLD", "gold")
 
 SPARK_MASTER = os.getenv("SPARK_MASTER", "local[*]")
 
@@ -63,3 +64,7 @@ def get_bronze_table_path(dataset_name: str) -> str:
 
 def get_silver_table_path(dataset_name: str) -> str:
     return f"s3a://{SILVER_BUCKET}/{dataset_name}"
+
+
+def get_gold_table_path(table_name: str) -> str:
+    return f"s3a://{GOLD_BUCKET}/{table_name}"
