@@ -26,6 +26,7 @@ def get_spark_session(app_name: str = "olist-bronze-ingestion") -> SparkSession:
             "org.apache.spark.sql.delta.catalog.DeltaCatalog",
         )
         .config("spark.sql.catalogImplementation", "hive")
+        .config("spark.sql.warehouse.dir", "s3a://bronze/warehouse")
         .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
         .config(
             "spark.hadoop.fs.s3a.aws.credentials.provider",

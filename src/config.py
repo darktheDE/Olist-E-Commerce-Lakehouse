@@ -34,6 +34,7 @@ SPARK_JARS_PACKAGES = os.getenv(
             f"io.delta:delta-spark_2.12:{DELTA_SPARK_PACKAGE_VERSION}",
             f"org.apache.hadoop:hadoop-aws:{HADOOP_AWS_PACKAGE_VERSION}",
             f"com.amazonaws:aws-java-sdk-bundle:{AWS_JAVA_SDK_BUNDLE_VERSION}",
+            "org.postgresql:postgresql:42.7.4",
         ]
     ),
 )
