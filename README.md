@@ -137,17 +137,26 @@ docker exec -it spark-master spark-submit /opt/workspace/jobs/03_analytics_gold.
 ```
 
 ## 📁 Project Structure
-```
-olist-data-lakehouse/
+```text
+.
 ├── dags/                       # Apache Airflow DAGs
 │   └── olist_pipeline_dag.py
-├── data/                       # Local volume mapping for raw CSVs
+├── data/                       # Local volume mapping for raw CSVs (Ignored by Git)
 ├── jobs/                       # PySpark scripts for ETL
 │   ├── 01_ingest_bronze.py
 │   ├── 02_process_silver.py
 │   └── 03_analytics_gold.py
+├── notebooks/                  # Jupyter notebooks for Data Exploration and PoC
+│   └── 00_spike_test.ipynb
+├── src/                        # Shared utility modules for PySpark jobs
+│   ├── __init__.py
+│   ├── spark_session.py        # Centralized SparkSession builder with MinIO config
+│   └── config.py               # Constants, table names, S3 paths
 ├── conf/                       # Configuration files (Spark defaults, Hive-site)
+│   └── spark-defaults.conf
 ├── docker-compose.yml          # Infrastructure setup
+├── requirements.txt            # Python dependencies
+├── .gitignore                  # Exclude raw data and logs
 └── README.md                   # Project documentation
 ```
 

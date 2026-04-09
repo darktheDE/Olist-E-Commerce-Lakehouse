@@ -1,0 +1,20 @@
+# Data
+data/
+*.csv
+*.parquet
+*.json
+
+# Spark and Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+metastore_db/
+derby.log
+spark-warehouse/
+
+# Logs
+logs/
+*.log
+
+# Docker
+.docker/
