@@ -1,13 +1,3 @@
-Trước khi triển khai task, bạn hãy:
-- Đọc kỹ tài liệu dự án, những task đã triển khai trước đó để lấy ngữ cảnh thực hiện task này. Đọc kỹ file README.md, .env, .env.example, các file conf, ... để lấy ngữ cảnh triển khai.
-- Bạn cần search trong .agent/skill, chọn những skill phù hợp với task để lấy ngữ cảnh thực hiện task này.
-- Kiểm tra xem task này có hợp lý với dự án hay không, có phải best implementation không, nếu không thì đề xuất thay đổi, bổ sung. Nội dung của task được gen bằng AI Studio, nội dung cùng chung ngữ cảnh phát triển nhưng có thể không tối ưu.
-- Đề xuất thay đổi nếu cần thiết.
-- Cần rà soát xem có những lỗi nào, rà soát những vấn đề có thể sảy ra, lên kế hoạch trước ở phần lên plan.
-- Mọi hoạt động triển khai task cần viết ngắn gọn nhưng đầy đủ, súc tích, step by step bằng tiếng việt vào chính doc này - <Mã-task>.md
-- Sau khi kiểm tra, chuẩn bị mọi thứ cho task, hãy lên kế hoạch thực hiện task, chờ tôi duyệt, không triển khai ngay.
-- Bạn có toàn quyền truy cập vào các file như file conf, file .env, .env.example, các file gitignore, ... để phục vụ cho việc triển khai task. Bạn có thể tự do chỉnh sửa, bổ sung, thay đổi các file này nếu cần thiết. Đảm bảo các file hợp lý, sync với nhau.
-
 [Issue 6] Thiết kế Airflow DAG (Orchestration)
 * **Mô tả:** Thay vì chạy script bằng tay, cấu hình Airflow để chạy tự động theo luồng Bronze -> Silver -> Gold.
 
@@ -45,6 +35,18 @@ Trước khi triển khai task, bạn hãy:
 
 ### Bước 3: Tài liệu hóa (Documentation)
 - Cập nhật file **DEVELOPMENT.md**, bổ sung mục hướng dẫn vận hành Airflow, tài khoản đăng nhập (`admin` / `admin`) và cách trigger DAG.
+
+### Bước 4: Sửa lỗi hạ tầng (Troubleshooting & Bug Fixes)
+Trong quá trình chạy DAG, đã phát sinh và giải quyết các vấn đề quan trọng sau:
+1. **Lỗi `[TABLE_OR_VIEW_NOT_FOUND]` ở task Silver:**
+   - *Nguyên nhân:* Xử lý Silver cố gắng gọi bảng qua `spark.table()` nhưng bảng chưa được đăng ký vào Hive Metastore.
+   - *Khắc phục:* Bổ sung script `register_tables.py` và `check_tables.py` vào luồng DAG, chạy ngay sau khi ingest xong.
+2. **Lỗi truy vấn Metastore không đồng bộ:**
+   - *Nguyên nhân:* Các file jobs dưới quyền Airflow đang tự dùng file Derby nội bộ thay vì dùng chung PostgreSQL của dự án do thiếu config.
+   - *Khắc phục:* Cập nhật file `src/spark_session.py` và `src/config.py` bổ sung cầu nối JDBC tới hostname `postgres` chạy qua port 5432.
+3. **Lỗi `No suitable driver found` khi Airflow chạy PySpark:**
+   - *Nguyên nhân:* Option `--packages` tải driver PostgreSQL tại lúc Runtime sau khi Spark Session (Hive instance) đã được nạp nên không tìm thấy driver.
+   - *Khắc phục:* (Giống với xử lý ở Notebook ở Task 23), đã tạo thư mục `./jars` ở máy host và tải trực tiếp file `postgresql-42.7.4.jar`. Phân quyền `volume` file này vào container của Airflow và nạp cờ biên dịch `PYSPARK_SUBMIT_ARGS` trong file `docker-compose.yml` (`--jars ... --driver-class-path ...`) giúp PySpark của Airflow nạp Driver ngay từ lúc khởi động.
 
 ---
 
