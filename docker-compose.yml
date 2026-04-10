@@ -157,9 +157,65 @@ services:
     networks:
       - lakehouse_net
 
+  spark-thrift-server:
+    image: apache/spark:3.5.0
+    container_name: olist-thrift-server
+    user: root
+    env_file:
+      - ./.env
+    environment:
+      SPARK_MODE: master
+      SPARK_HOME: /opt/spark
+      PATH: /opt/spark/bin:/opt/spark/sbin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    volumes:
+      - ./conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
+      - ./jars:/opt/spark/extra-jars:ro
+      - ./data:/opt/spark/data
+    command: >
+      bash -c "/opt/spark/bin/spark-submit --class org.apache.spark.sql.hive.thriftserver.HiveThriftServer2 
+      --conf spark.sql.hive.thriftServer.singleSession=true
+      --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension
+      --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog
+      --driver-class-path \"/opt/spark/extra-jars/*\"
+      --jars \"/opt/spark/extra-jars/*\""
+    ports:
+      - "10000:10000"
+      - "4041:4040"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    networks:
+      - lakehouse_net
+
+  superset:
+    image: apache/superset:latest
+    container_name: olist-superset
+    user: root
+    env_file:
+      - ./.env
+    environment:
+      SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY}
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./scripts:/app/scripts
+      - superset_home:/app/superset_home
+    command: >
+      bash -c "apt-get update && apt-get install -y gcc g++ libsasl2-dev && 
+      pip install --target /app/.venv/lib/python3.10/site-packages pyhive thrift sasl thrift_sasl && 
+      /usr/bin/run-server.sh"
+    depends_on:
+      spark-thrift-server:
+        condition: service_started
+    networks:
+      - lakehouse_net
+
 volumes:
   minio_data:
   postgres_data:
+  superset_home:
 
 networks:
   lakehouse_net:

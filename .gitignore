@@ -21,3 +21,8 @@ logs/
 
 # Local environment files
 # For development, private repository, we push .env
+.env
+
+# Jar libraries (heavy files)
+jars/
+*.jar
