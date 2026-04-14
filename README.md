@@ -21,7 +21,7 @@
 - [Team Members & Contributions](#-team-members--contributions)
 
 ## 📖 Project Overview
-This project focuses on building a complete, end-to-end **Data Lakehouse** pipeline to process, manage, and analyze massive volumes of e-commerce data. Utilizing the Brazilian E-Commerce Public Dataset by Olist (Kaggle), the system is designed to extract actionable business insights such as **RFM (Recency, Frequency, Monetary) Customer Segmentation**, delivery KPIs, and sales trends.
+This project focuses on building a complete, end-to-end **Data Lakehouse** pipeline to process, manage, and analyze massive volumes of e-commerce data. Utilizing the [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) from Kaggle, the system is designed to extract actionable business insights such as **RFM (Recency, Frequency, Monetary) Customer Segmentation**, delivery KPIs, and sales trends.
 
 The project strictly adheres to the modern 5-layer Data Lakehouse architecture, leveraging distributed processing engines (Apache Spark) and ACID-compliant storage (Delta Lake) over legacy big data tools.
 
@@ -35,31 +35,8 @@ The system architecture implements the core five layers of a Data Lakehouse:
 5. **Consumption Layer:** Interactive BI dashboards built with **Apache Superset**.
 6. **Orchestration:** End-to-end pipeline automation scheduled via **Apache Airflow**.
 
-```mermaid
-flowchart LR
-    Source[/"📁 Olist Dataset (CSV)"/]
-    User(("👨‍💼 Business Analysts"))
+![System Architecture](docs/SYSARCH_OLIST.jpg)
 
-    subgraph Data Lakehouse Architecture
-        L1["Ingestion (Spark Batch)"]
-        L2["Storage (MinIO + Delta Lake)"]
-        L3["Metadata (Hive Metastore + PostgreSQL)"]
-        L4["Processing (Apache Spark)"]
-        L5["Consumption (Superset)"]
-    end
-
-    Airflow["🌀 Apache Airflow (Orchestration)"]
-
-    Source -->|Read| L1
-    L1 -->|Write Bronze| L2
-    L2 <-->|Read/Write Silver & Gold| L4
-    L3 -. "Schema Provider" .- L4
-    L3 -. "Schema Provider" .- L5
-    L4 -->|Aggregated Data| L5
-    L5 -->|Dashboards| User
-    Airflow -. "Schedules Pipeline" .- L1
-    Airflow -. "Schedules Pipeline" .- L4
-```
 
 ## 🏅 Medallion Data Pipeline
 

@@ -7,18 +7,28 @@
    git clone https://github.com/darktheDE/Olist-E-Commerce-Lakehouse
    cd Olist-E-Commerce-Lakehouse
    ```
-2. Chuyển sang nhánh `develop` và cập nhật:
+2. Cập nhật nhánh `main` mới nhất:
    ```bash
-   git checkout develop
-   git pull origin develop
+   git checkout main
+   git pull origin main
    ```
+3. **Tải Dataset:**
+   - Tải bộ dữ liệu [Olist E-Commerce](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) từ Kaggle.
+   - Giải nén và đặt tất cả các file CSV vào thư mục: `data/raw/olist/`
+   - Đảm bảo thư mục có cấu trúc:
+     ```text
+     data/raw/olist/
+     ├── olist_customers_dataset.csv
+     ├── olist_geolocation_dataset.csv
+     ├── ...
+     ```
 3. Khởi chạy các dịch vụ (Docker):
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 4. Dừng các dịch vụ:
    ```bash
-   docker-compose down
+   docker compose down
    ```
 
 ## 2. Orchestration với Airflow
@@ -38,52 +48,25 @@ Dự án sử dụng Airflow để tự động hóa luồng dữ liệu (Bronze
    - Sử dụng **Graph View** để xem luồng công việc.
    - Kiểm tra **Logs** của từng task (`ingest_bronze`, `process_silver`, `analytics_gold`) nếu gặp lỗi.
 
-## 2. Quy trình phát triển (Agile/Scrum với Plane.so)
-
-**Chuẩn bị Task:**
-1. Lên Plane.so chọn task cần làm.
-2. Đọc tài liệu lệnh quan (`DEVELOPMENT.md`, yêu cầu của task).
-3. Assign task cho chính mình (Assignee).
-4. Assign người Reviewer.
-5. Đặt Deadline hoàn thành code cho người làm (đến khi có PR).
-6. Chuyển trạng thái task từ `Todo` sang `In Progress`.
 
 **Tiến hành Code:**
-1. Cập nhật nhánh `develop` mới nhất:
+1. Đảm bảo bạn đang ở nhánh `main` và đã cập nhật mới nhất:
    ```bash
-   git checkout develop
-   git pull origin develop
+   git checkout main
+   git pull origin main
    ```
-2. Tạo nhánh từ `develop` theo format `feature/<module>/<mã-task-trên-plane>`:
-   ```bash
-   git checkout -b feature/<module>/<mã-task>
-   ```
-3. Tạo file `<mã-task>.md` để lưu lại quá trình phát triển (cách đã làm, lỗi gặp phải, cách fix) làm tài liệu lưu trữ sau này.
-4. Thực hiện code và commit:
+2. Thực hiện code và commit:
    ```bash
    git add .
    git commit -m "feat: mô tả ngắn gọn sửa đổi"
+   git push origin main
    ```
-5. Đẩy code lên repository:
-   ```bash
-   git push origin feature/<module>/<mã-task>
-   ```
-
-**Pull Request (PR) & Code Review:**
-1. Tạo PR từ nhánh `feature/...` vào nhánh `develop`.
-2. Đặt Deadline cho Reviewer (thời gian tối đa để kiểm tra và Accept PR).
-3. Reviewer kiểm tra code và duyệt qua.
-4. Quản lý repo tiến hành Merge PR khi hoàn tất review 3 bên.
-
-**Lịch Họp:**
-* Họp nhóm 2 ngày/buổi, vào **22h30 mỗi tối**.
 
 ## 3. Quy tắc đặt tên
 
-### Nhánh (Branch)
-* `feature/<module>/<task>` - Tính năng / công việc mới
-* `bugfix/...` - Sửa lỗi
-* `chore/...` - Cập nhật thư viện, cấu hình
+### Nhánh (nếu sử dụng)
+* `task/<mã-task>` - Công việc cụ thể
+* `hotfix/...` - Sửa lỗi gấp trên main
 
 ### Commit
 * `feat:` - Tính năng mới
