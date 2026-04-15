@@ -98,9 +98,10 @@ Dù có `catchup=False`, **Airflow vẫn có thể tạo 1 scheduled run gần n
 
 ## RF-06 — Quyết định số phận pyspark-notebook
 
-> **Trạng thái:** ⬜ Chờ RF-05 pass
+> **Trạng thái:** 🟢 Đã triển khai
 
-*(Sẽ được lên kế hoạch chi tiết sau khi RF-05 pass)*
+**Giải pháp đã chọn:** Xóa bỏ hoàn toàn container `jupyter/pyspark-notebook` khỏi hệ thống (tiết kiệm ~7GB dung lượng Docker) vì bản thân Airflow (BashOperator) đã chứa thư viện `pyspark` và tự chịu trách nhiệm chạy các jobs.
+**Cách tương tác thay thế:** Tạo môi trường ảo (Virtual Environment) trực tiếp trên máy host với các thư viện trong `requirements.txt` và sử dụng VS Code Jupyter Extension để phân tích code `.ipynb` kết nối thẳng vào database/minio.
 
 ---
 
@@ -116,4 +117,8 @@ Dù có `catchup=False`, **Airflow vẫn có thể tạo 1 scheduled run gần n
 
 | Ngày | Mục | Status | Ghi chú |
 |------|-----|--------|---------|
-| 2026-04-15 | RF-01 | 🟡 Chờ manual test | Đã triển khai xong; chờ bạn chạy test |
+| 2026-04-15 | RF-01 | � Pass | Đã triển khai xong, sửa Schema Metastore qua sql script |
+| 2026-04-15 | RF-03 | 🟢 Pass | Đã sửa schedule_interval=None |
+| 2026-04-15 | ER-01 | 🟢 Pass | Xóa DataNucleus auto-create, xử lý deadlock schema Metastore |
+| 2026-04-15 | ER-02 | 🟢 Pass | Khởi tạo Superset Schema (superset db upgrade) qua scripts chuẩn |
+| 2026-04-15 | RF-06 | 🟢 Pass | Đánh giá, xác nhận và gỡ bỏ hoàn toàn Jupyter Pyspark container 7GB khỏi hệ thống |

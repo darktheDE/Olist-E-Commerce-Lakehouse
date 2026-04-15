@@ -26,3 +26,4 @@ logs/
 # Jar libraries (heavy files)
 jars/
 *.jar
+.venv/

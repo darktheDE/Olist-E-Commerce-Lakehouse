@@ -132,36 +132,6 @@ services:
     command: >
       bash -c "airflow db init && airflow users create --username admin --firstname admin --lastname admin --role Admin --email admin@example.com --password admin"
 
-  pyspark-notebook:
-    image: jupyter/pyspark-notebook:latest
-    container_name: olist-pyspark-notebook
-    env_file:
-      - ./.env
-    environment:
-      JUPYTER_TOKEN: ${JUPYTER_TOKEN}
-      PYSPARK_SUBMIT_ARGS: >
-        --packages io.delta:delta-spark_2.12:3.2.0,org.apache.hadoop:hadoop-aws:3.3.4,com.amazonaws:aws-java-sdk-bundle:1.12.262,org.postgresql:postgresql:42.7.4
-        --conf spark.hadoop.fs.s3a.access.key=${MINIO_ROOT_USER}
-        --conf spark.hadoop.fs.s3a.secret.key=${MINIO_ROOT_PASSWORD}
-        --conf spark.hadoop.fs.s3a.endpoint=${MINIO_ENDPOINT}
-        --conf spark.hadoop.fs.s3a.path.style.access=true
-        --conf spark.hadoop.fs.s3a.connection.ssl.enabled=false
-        pyspark-shell
-    command: start-notebook.py --NotebookApp.token=${JUPYTER_TOKEN}
-    ports:
-      - "8888:8888"
-    volumes:
-      - ./:/home/jovyan/work
-      - ./conf/spark-defaults.conf:/usr/local/spark/conf/spark-defaults.conf:ro
-    depends_on:
-      minio:
-        condition: service_started
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
-    networks:
-      - lakehouse_net
-
   spark-thrift-server:
     image: apache/spark:3.5.8
     container_name: olist-thrift-server
@@ -194,19 +164,35 @@ services:
     networks:
       - lakehouse_net
 
-  superset:
+  superset-common: &superset-common
     image: apache/superset:latest
-    container_name: olist-superset
     user: root
     env_file:
       - ./.env
     environment:
       SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY}
-    ports:
-      - "8088:8088"
     volumes:
       - ./scripts:/app/scripts
       - superset_home:/app/superset_home
+    networks:
+      - lakehouse_net
+
+  superset-init:
+    <<: *superset-common
+    container_name: olist-superset-init
+    command: >
+      bash -c "apt-get update && apt-get install -y gcc g++ libsasl2-dev && 
+      pip install --target /app/.venv/lib/python3.10/site-packages pyhive thrift sasl thrift_sasl && 
+      bash /app/scripts/setup-superset.sh"
+    depends_on:
+      spark-thrift-server:
+        condition: service_started
+
+  superset:
+    <<: *superset-common
+    container_name: olist-superset
+    ports:
+      - "8088:8088"
     command: >
       bash -c "apt-get update && apt-get install -y gcc g++ libsasl2-dev && 
       pip install --target /app/.venv/lib/python3.10/site-packages pyhive thrift sasl thrift_sasl && 
@@ -214,8 +200,8 @@ services:
     depends_on:
       spark-thrift-server:
         condition: service_started
-    networks:
-      - lakehouse_net
+      superset-init:
+        condition: service_completed_successfully
 
 volumes:
   minio_data:
