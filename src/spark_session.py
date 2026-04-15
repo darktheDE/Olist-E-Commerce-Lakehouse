@@ -51,8 +51,8 @@ def get_spark_session(app_name: str = "olist-bronze-ingestion") -> SparkSession:
             "spark.hadoop.javax.jdo.option.ConnectionPassword",
             os.getenv("POSTGRES_PASSWORD", "metastore123"),
         )
-        # RF-01: autoCreateAll=false — schema đã được init bởi hive-metastore-init service
-        # RF-01: verification=false  — bỏ qua Hive version check, đồng bộ với spark-defaults.conf
+        # ER-01: autoCreateAll=false — schema đã được tạo sẵn bởi sql script
+        # ER-01: verification=false  — bỏ qua Hive version check
         .config("spark.hadoop.datanucleus.schema.autoCreateAll", "false")
         .config("spark.hadoop.hive.metastore.schema.verification", "false")
         # Classpath for Hive Metastore JDBC Driver

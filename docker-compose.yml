@@ -47,42 +47,15 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init-airflow-db.sql:/docker-entrypoint-initdb.d/init-airflow-db.sql:ro
+      - ./scripts/hive-schema-2.3.0.postgres.sql:/docker-entrypoint-initdb.d/10-hive-schema.sql:ro
+      - ./scripts/hive-txn-schema-2.3.0.postgres.sql:/docker-entrypoint-initdb.d/hive-txn-schema-2.3.0.postgres.txt:ro
+      - ./scripts/init-airflow-db.sql:/docker-entrypoint-initdb.d/20-init-airflow-db.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
     restart: unless-stopped
-    networks:
-      - lakehouse_net
-
-  # ---------------------------------------------------------------------------
-  # RF-01: Khởi tạo Hive Metastore schema trên PostgreSQL (chạy 1 lần duy nhất)
-  # Dùng DataNucleus autoCreateAll=true để tạo các bảng DBS, SDS, TBLS, VERSION...
-  # Các service phụ thuộc (spark-thrift-server, airflow-*) chỉ start sau khi
-  # service này exit 0 (service_completed_successfully).
-  # ---------------------------------------------------------------------------
-  hive-metastore-init:
-    image: apache/spark:3.5.8
-    container_name: olist-hive-metastore-init
-    user: root
-    env_file:
-      - ./.env
-    volumes:
-      - ./jars:/opt/spark/extra-jars:ro
-      - ./scripts/init-hive-schema.py:/init-hive-schema.py:ro
-    command: >
-      bash -c "
-      PY4J_ZIP=$$(ls /opt/spark/python/lib/py4j-*-src.zip 2>/dev/null | head -1) &&
-      export PYTHONPATH=/opt/spark/python:$${PY4J_ZIP} &&
-      echo '[HIVE-INIT] PYTHONPATH='$${PYTHONPATH} &&
-      python3 /init-hive-schema.py
-      "
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: "no"
     networks:
       - lakehouse_net
 
@@ -117,8 +90,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      hive-metastore-init:
-        condition: service_completed_successfully
     networks:
       - lakehouse_net
 
@@ -136,8 +107,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      hive-metastore-init:
-        condition: service_completed_successfully
       airflow-init:
         condition: service_completed_successfully
 
@@ -148,8 +117,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      hive-metastore-init:
-        condition: service_completed_successfully
       airflow-init:
         condition: service_completed_successfully
 
@@ -163,14 +130,7 @@ services:
       _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-admin}
     user: "0:0"
     command: >
-      bash -c "airflow db init &&
-      airflow users create \
-          --username admin \
-          --firstname admin \
-          --lastname admin \
-          --role Admin \
-          --email admin@example.com \
-          --password admin"
+      bash -c "airflow db init && airflow users create --username admin --firstname admin --lastname admin --role Admin --email admin@example.com --password admin"
 
   pyspark-notebook:
     image: jupyter/pyspark-notebook:latest
@@ -231,8 +191,6 @@ services:
         condition: service_healthy
       minio:
         condition: service_started
-      hive-metastore-init:
-        condition: service_completed_successfully
     networks:
       - lakehouse_net
 
