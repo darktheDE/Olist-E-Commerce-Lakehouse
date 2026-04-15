@@ -24,6 +24,5 @@ logs/
 .env
 
 # Jar libraries (heavy files)
-jars/
-*.jar
 .venv/
+jars/com.amazonaws_aws-java-sdk-bundle-1.12.262.jar
