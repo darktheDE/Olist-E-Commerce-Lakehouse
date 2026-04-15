@@ -16,7 +16,7 @@ with DAG(
     'olist_lakehouse_pipeline',
     default_args=default_args,
     description='Orchestrate Olist Lakehouse pipeline: Bronze -> Silver -> Gold',
-    schedule_interval=timedelta(days=1),
+    schedule_interval=None,
     start_date=datetime(2024, 1, 1),
     catchup=False,
     tags=['lakehouse', 'olist'],
